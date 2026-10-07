@@ -66,9 +66,6 @@ token, which aren't there yet.
   Joomla 5 site, check that the plugin installs and the task runs. The
   provider's `new MagazineChecklist(array $config)` constructor style is the one
   core uses since 5.x.
-- **Where this repository lives.** As a private repository it would run into
-  the same Actions limit. Under your own account and public, CI and releases
-  cost nothing.
 - **Log messages from the sync are English**, not language strings. They contain
   issue numbers and titles and are read by maintainers in the task log. Turn
   them into `PLG_TASK_MAGAZINECHECKLIST_LOG_*` strings if that's ever wanted.
