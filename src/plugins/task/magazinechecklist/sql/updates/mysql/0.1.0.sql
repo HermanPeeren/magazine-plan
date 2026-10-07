@@ -1,0 +1,3 @@
+-- The first version. The table itself is created by install.mysql.utf8.sql;
+-- this file is here so Joomla records the schema version and later updates
+-- have something to follow on from.

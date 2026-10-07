@@ -1,0 +1,13 @@
+{
+  "name": "magazine-checklist",
+  "private": true,
+  "type": "module",
+  "description": "Cypress specs for the magazine checklist task plugin, run against the development Joomla in /joomla.",
+  "scripts": {
+    "cypress": "cypress run",
+    "cypress:open": "cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^15.21.1"
+  }
+}
