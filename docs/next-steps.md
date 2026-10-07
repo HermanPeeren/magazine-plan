@@ -82,11 +82,8 @@ token, which aren't there yet.
   - a webhook endpoint (`com_ajax` plus HMAC check) for instant updates, using
     the same `ChecklistEditor` and gateway, with the task kept as a safety net.
 
-## No remote yet
+## Repository
 
-Everything is committed locally on `main`, but there is no remote. Add one when
-the GitHub repository exists, then push:
-
-```bash
-git remote add origin https://github.com/HermanPeeren/magazine-plan.git
-```
+Public at https://github.com/HermanPeeren/magazine-plan, pushed on 2026-10-07.
+CI passes there. No release has been tagged yet: push a tag `v0.1.0` to publish
+the first package.
