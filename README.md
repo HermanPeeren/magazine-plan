@@ -24,7 +24,7 @@ table `#__magazinechecklist_cursor`. When nothing happened, GitHub answers
 
 ## Setting it up
 
-1. Install the plugin package (it enables itself).
+1. Install the plugin package on a Joomla 6 site (it enables itself).
 2. Create a fine-grained personal access token on GitHub for the magazine
    repository only, with **Issues: Read and write**.
 3. In *System → Scheduled Tasks → New*, choose **Magazine: sync checklists**,

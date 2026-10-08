@@ -42,14 +42,6 @@
 		<exclude-pattern>tools/*</exclude-pattern>
 	</rule>
 
-	<!-- Joomla names install script classes Plg<Group><Element>InstallerScript, in no namespace. -->
-	<rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
-		<exclude-pattern>src/script.php</exclude-pattern>
-	</rule>
-	<rule ref="Squiz.Classes.ValidClassName.NotPascalCase">
-		<exclude-pattern>src/script.php</exclude-pattern>
-	</rule>
-
 	<rule ref="Generic.Files.LineLength">
 		<properties>
 			<property name="lineLimit" value="150"/>

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Yepr\Plugin\Task\MagazineChecklist\Tests\Unit\Sync;
 
 use PHPUnit\Framework\TestCase;
+use Yepr\Plugin\Task\MagazineChecklist\Checklist\ChecklistEditor;
+use Yepr\Plugin\Task\MagazineChecklist\Checklist\TitleMatcher;
 use Yepr\Plugin\Task\MagazineChecklist\Github\Issue;
 use Yepr\Plugin\Task\MagazineChecklist\Github\IssueEvent;
 use Yepr\Plugin\Task\MagazineChecklist\Sync\ChecklistSync;
@@ -217,7 +219,9 @@ final class ChecklistSyncTest extends TestCase
             $settings ?? new SyncSettings(),
             function (string $message, string $priority): void {
                 $this->log[] = [$message, $priority];
-            }
+            },
+            new ChecklistEditor(),
+            new TitleMatcher()
         );
     }
 }

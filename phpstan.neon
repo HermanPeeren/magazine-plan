@@ -33,9 +33,12 @@ parameters:
         # DatabaseInterface::quoteName() is documented as `array|string`
         # because it takes either and returns the same kind. Given one string,
         # it returns one string; core passes its result straight to from() and
-        # concatenates it on every page. The cursor store passes only strings.
+        # concatenates it on every page. The cursor store and the install
+        # script pass only strings.
         -
-            message: '#(Parameter \#1 \$table of method Joomla\\Database\\QueryInterface::(from|delete)\(\) expects .+, array\|string given|Binary operation "\." between array\|string and .+ results in an error)#'
-            path: src/plugins/task/magazinechecklist/src/Sync/DatabaseCursorStore.php
+            message: '#(Parameter \#1 \$table of method Joomla\\Database\\QueryInterface::(from|delete|update)\(\) expects .+, array\|string given|Binary operation "\." between array\|string and .+ results in an error)#'
+            paths:
+                - src/plugins/task/magazinechecklist/src/Sync/DatabaseCursorStore.php
+                - src/script.php
 
     treatPhpDocTypesAsCertain: false

@@ -1,0 +1,1 @@
+-- Joomla 6 and dependency injection; no schema change.

@@ -14,15 +14,9 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Component\Scheduler\Administrator\Event\ExecuteTaskEvent;
 use Joomla\Component\Scheduler\Administrator\Task\Status as TaskStatus;
 use Joomla\Component\Scheduler\Administrator\Traits\TaskPluginTrait;
-use Joomla\Database\DatabaseAwareInterface;
-use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Event\SubscriberInterface;
-use Joomla\Http\HttpFactory;
-use Yepr\Plugin\Task\MagazineChecklist\Github\HttpGithubGateway;
-use Yepr\Plugin\Task\MagazineChecklist\Github\JoomlaHttpTransport;
-use Yepr\Plugin\Task\MagazineChecklist\Sync\ChecklistSync;
-use Yepr\Plugin\Task\MagazineChecklist\Sync\DatabaseCursorStore;
-use Yepr\Plugin\Task\MagazineChecklist\Sync\SyncSettings;
+use Yepr\Plugin\Task\MagazineChecklist\Sync\ChecklistSyncFactory;
+use Yepr\Plugin\Task\MagazineChecklist\Sync\MissingConfiguration;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -31,14 +25,14 @@ use Yepr\Plugin\Task\MagazineChecklist\Sync\SyncSettings;
 /**
  * Offers the task type "Magazine: sync checklists" to the Task Scheduler.
  *
- * Everything the task does is in ChecklistSync; this class only turns the
- * task's parameters into one and runs it. The owner, repository and token are
- * parameters of each task rather than of the plugin, so one site can sync a
- * test fork and the real repository side by side.
+ * Everything the task does is in ChecklistSync. This class hands the task's
+ * parameters to the injected factory, runs what it gets back and turns the
+ * outcome into an exit code. The owner, repository and token are parameters of
+ * each task rather than of the plugin, so one site can sync a test fork and the
+ * real repository side by side.
  */
-final class MagazineChecklist extends CMSPlugin implements SubscriberInterface, DatabaseAwareInterface
+final class MagazineChecklist extends CMSPlugin implements SubscriberInterface
 {
-	use DatabaseAwareTrait;
 	use TaskPluginTrait;
 
 	/**
@@ -56,6 +50,14 @@ final class MagazineChecklist extends CMSPlugin implements SubscriberInterface, 
 	 * @var boolean
 	 */
 	protected $autoloadLanguage = true;
+
+	/**
+	 * @param   array<string, mixed>  $config  The plugin's row, from PluginHelper::getPlugin().
+	 */
+	public function __construct(array $config, private readonly ChecklistSyncFactory $syncFactory)
+	{
+		parent::__construct($config);
+	}
 
 	/**
 	 * @return  array<string, string>
@@ -76,44 +78,20 @@ final class MagazineChecklist extends CMSPlugin implements SubscriberInterface, 
 	 */
 	protected function sync(ExecuteTaskEvent $event): int
 	{
-		$params     = $event->getArgument('params');
-		$owner      = trim((string) ($params->owner ?? ''));
-		$repository = trim((string) ($params->repository ?? ''));
-		$token      = trim((string) ($params->token ?? ''));
+		$params = $event->getArgument('params');
 
-		if ($owner === '' || $repository === '' || $token === '') {
+		try {
+			$sync = $this->syncFactory->createForTask(
+				\is_object($params) ? $params : (object) [],
+				function (string $message, string $priority): void {
+					$this->logTask($message, $priority);
+				}
+			);
+		} catch (MissingConfiguration) {
 			$this->logTask(Text::_('PLG_TASK_MAGAZINECHECKLIST_LOG_NOT_CONFIGURED'), 'error');
 
 			return TaskStatus::KNOCKOUT;
 		}
-
-		$labels = array_values(array_filter([
-			trim((string) ($params->plan_label ?? 'issue plan')),
-			trim((string) ($params->imagery_label ?? 'Imagery')),
-		], static fn (string $label): bool => $label !== ''));
-
-		$settings = new SyncSettings(
-			$labels,
-			(string) ($params->heading ?? '### Table of contents'),
-			max(1, (int) ($params->max_pages ?? 10)),
-			(bool) ($params->dry_run ?? true)
-		);
-
-		$gateway = new HttpGithubGateway(
-			new JoomlaHttpTransport((new HttpFactory())->getHttp()),
-			$owner,
-			$repository,
-			$token
-		);
-
-		$sync = new ChecklistSync(
-			$gateway,
-			new DatabaseCursorStore($this->getDatabase()),
-			$settings,
-			function (string $message, string $priority): void {
-				$this->logTask($message, $priority);
-			}
-		);
 
 		try {
 			$sync->run($event->getTaskId());

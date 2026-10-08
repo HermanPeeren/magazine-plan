@@ -1,11 +1,14 @@
 # Where this stands, and how to continue
 
-Status on 2026-10-07: **version 0.1.0, complete enough to try against a real
+Status on 2026-10-08: **version 0.2.0, complete enough to try against a real
 repository.** What's left needs the fork of the magazine repository and a
 token, which aren't there yet.
 
 ## Done
 
+- Joomla 6 only (PHP 8.3+), with the plugin loaded lazily through
+  `$container->lazy()` and all services injected; see "Dependency injection" in
+  [development.md](development.md).
 - The task plugin `plg_task_magazinechecklist` with the routine
   **Magazine: sync checklists**. Owner, repository, token, labels, heading,
   maximum pages and dry run are all task parameters. Dry run is on by default.
@@ -23,11 +26,12 @@ token, which aren't there yet.
 - Polling the issue events with a cursor per task, ETag/304 when nothing
   changed, and a warning when there were more new events than one run may read.
 - Repo set-up: git, composer, PHPStan level 8 (clean), phpcs/php-cs-fixer,
-  PHPUnit (48 tests), Cypress (2 specs), CI and release workflows, a build
+  PHPUnit (53 tests), Cypress (2 specs), CI and release workflows, a build
   script, and a development site in `/joomla`. See
   [development.md](development.md).
 - Checked on the development site: the package installs and enables itself,
-  creates its table and records schema 0.1.0. Running a task through
+  creates its table and records its schema version; an update from 0.1.0 and an
+  uninstall (which drops the table) work too. Running a task through
   `scheduler:run` with a dummy token reaches GitHub and logs "401 Bad
   credentials" as the reason it stopped.
 
@@ -61,11 +65,12 @@ token, which aren't there yet.
 
 ## Open points
 
-- **The magazine site's Joomla version.** The install script accepts Joomla 5.0
-  and PHP 8.1 or later, but the plugin has only been run on Joomla 6.1.4. On a
-  Joomla 5 site, check that the plugin installs and the task runs. The
-  provider's `new MagazineChecklist(array $config)` constructor style is the one
-  core uses since 5.x.
+- **The magazine site must run Joomla 6.** The plugin refuses to install on an
+  older version.
+- **The lazy proxy is untested locally.** WAMP has PHP 8.3, where `lazy()`
+  builds the plugin straight away. PHP 8.4 makes it a real lazy proxy, the
+  same way as for core's (also final) plugins. Run the task once on a PHP 8.4
+  site.
 - **Log messages from the sync are English**, not language strings. They contain
   issue numbers and titles and are read by maintainers in the task log. Turn
   them into `PLG_TASK_MAGAZINECHECKLIST_LOG_*` strings if that's ever wanted.
@@ -82,5 +87,5 @@ token, which aren't there yet.
 ## Repository
 
 Public at https://github.com/HermanPeeren/magazine-plan, pushed on 2026-10-07.
-CI passes there. No release has been tagged yet: push a tag `v0.1.0` to publish
+CI passes there. No release has been tagged yet: push a tag `v0.2.0` to publish
 the first package.

@@ -7,92 +7,117 @@
  * @license     GNU General Public License version 3 or later; see LICENSE.txt
  */
 
-defined('_JEXEC') or die;
+\defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
+use Joomla\CMS\Application\CMSApplicationInterface;
 use Joomla\CMS\Installer\InstallerAdapter;
+use Joomla\CMS\Installer\InstallerScriptInterface;
 use Joomla\Database\DatabaseInterface;
+use Joomla\DI\Container;
+use Joomla\DI\ServiceProviderInterface;
 
 /**
- * Install script for the magazine checklist task plugin.
+ * Install script for the magazine checklist task plugin, as a service provider:
+ * Joomla 6 deprecates the old named-class scripts.
  *
- * Refuses a site it cannot run on, and enables the plugin on a fresh install:
+ * It refuses a site it cannot run on, and enables the plugin on a fresh install.
  * Joomla installs plugins disabled, and a disabled task plugin offers no task
  * type, so the first thing anyone would see is that it "does nothing". It still
  * does nothing until somebody creates a task with it.
  */
-class PlgTaskMagazinechecklistInstallerScript
-{
-	/**
-	 * The oldest Joomla this runs on. The Task Scheduler arrived in 4.1; 5.0 is
-	 * the oldest version still supported.
-	 */
-	private string $minimumJoomlaVersion = '5.0';
-
-	/**
-	 * The oldest PHP this runs on: Joomla 5's own minimum.
-	 */
-	private string $minimumPHPVersion = '8.1';
-
-	/**
-	 * Refuse an environment that cannot run this.
-	 *
-	 * @param   string            $type    install, update, discover_install or uninstall
-	 * @param   InstallerAdapter  $parent  The installer
-	 *
-	 * @return  boolean  False stops the installation.
-	 */
-	public function preflight($type, $parent): bool
+return new class () implements ServiceProviderInterface {
+	public function register(Container $container): void
 	{
-		if ($type === 'uninstall') {
-			return true;
-		}
+		$container->set(
+			InstallerScriptInterface::class,
+			static fn (Container $container): InstallerScriptInterface => new class (
+				$container->get(DatabaseInterface::class)
+			) implements InstallerScriptInterface {
+				/**
+				 * The oldest Joomla this runs on: the plugin's provider uses the
+				 * lazy plugin loading of Joomla 6.
+				 */
+				private const MINIMUM_JOOMLA = '6.0';
 
-		$app = Factory::getApplication();
+				/**
+				 * The oldest PHP this runs on, which is Joomla 6's own minimum.
+				 */
+				private const MINIMUM_PHP = '8.3';
 
-		if (version_compare(PHP_VERSION, $this->minimumPHPVersion, '<')) {
-			$app->enqueueMessage(
-				sprintf('The magazine checklist plugin needs PHP %s or later.', $this->minimumPHPVersion),
-				'error'
-			);
+				private ?CMSApplicationInterface $app = null;
 
-			return false;
-		}
+				public function __construct(private readonly DatabaseInterface $db)
+				{
+				}
 
-		if (version_compare(JVERSION, $this->minimumJoomlaVersion, '<')) {
-			$app->enqueueMessage(
-				sprintf('The magazine checklist plugin needs Joomla %s or later.', $this->minimumJoomlaVersion),
-				'error'
-			);
+				/**
+				 * Called by the installer, which has the application at hand.
+				 */
+				public function setApplication(CMSApplicationInterface $app): void
+				{
+					$this->app = $app;
+				}
 
-			return false;
-		}
+				public function install(InstallerAdapter $adapter): bool
+				{
+					return true;
+				}
 
-		return true;
+				public function update(InstallerAdapter $adapter): bool
+				{
+					return true;
+				}
+
+				public function uninstall(InstallerAdapter $adapter): bool
+				{
+					return true;
+				}
+
+				public function preflight(string $type, InstallerAdapter $adapter): bool
+				{
+					if ($type === 'uninstall') {
+						return true;
+					}
+
+					if (version_compare(PHP_VERSION, self::MINIMUM_PHP, '<')) {
+						$this->app?->enqueueMessage(
+							\sprintf('The magazine checklist plugin needs PHP %s or later.', self::MINIMUM_PHP),
+							'error'
+						);
+
+						return false;
+					}
+
+					if (version_compare(JVERSION, self::MINIMUM_JOOMLA, '<')) {
+						$this->app?->enqueueMessage(
+							\sprintf('The magazine checklist plugin needs Joomla %s or later.', self::MINIMUM_JOOMLA),
+							'error'
+						);
+
+						return false;
+					}
+
+					return true;
+				}
+
+				public function postflight(string $type, InstallerAdapter $adapter): bool
+				{
+					if ($type !== 'install') {
+						return true;
+					}
+
+					$query = $this->db->getQuery(true)
+						->update($this->db->quoteName('#__extensions'))
+						->set($this->db->quoteName('enabled') . ' = 1')
+						->where($this->db->quoteName('type') . ' = ' . $this->db->quote('plugin'))
+						->where($this->db->quoteName('folder') . ' = ' . $this->db->quote('task'))
+						->where($this->db->quoteName('element') . ' = ' . $this->db->quote('magazinechecklist'));
+
+					$this->db->setQuery($query)->execute();
+
+					return true;
+				}
+			}
+		);
 	}
-
-	/**
-	 * Enable the plugin after a fresh install.
-	 *
-	 * @param   string            $type    install, update or discover_install
-	 * @param   InstallerAdapter  $parent  The installer
-	 *
-	 * @return  void
-	 */
-	public function postflight($type, $parent): void
-	{
-		if ($type !== 'install') {
-			return;
-		}
-
-		$db    = Factory::getContainer()->get(DatabaseInterface::class);
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__extensions'))
-			->set($db->quoteName('enabled') . ' = 1')
-			->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
-			->where($db->quoteName('folder') . ' = ' . $db->quote('task'))
-			->where($db->quoteName('element') . ' = ' . $db->quote('magazinechecklist'));
-
-		$db->setQuery($query)->execute();
-	}
-}
+};

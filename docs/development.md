@@ -8,15 +8,16 @@ site:
 ```
 src/
   magazinechecklist.xml                  the manifest; <files folder="plugins/task/magazinechecklist">
-  script.php                             install script: version checks, enables the plugin
+  script.php                             install script (a service provider): Joomla 6 / PHP 8.3 checks, enables the plugin
   plugins/task/magazinechecklist/
-    services/provider.php                DI: builds the plugin, injects the database
+    services/provider.php                the composition root: registers the services, builds the plugin lazily
     forms/sync.xml                       the task's parameters
     language/en-GB/                      plg_task_magazinechecklist(.sys).ini
     sql/                                 the cursor table, and updates/mysql/<version>.sql
     src/
       Extension/MagazineChecklist.php    the task plugin: reads the parameters, runs the sync
       Sync/ChecklistSync.php             one run: read events, replay them, write back, move the cursor
+      Sync/ChecklistSyncFactory.php      builds a ChecklistSync from one task's parameters
       Sync/Cursor*.php, SyncSettings.php
       Checklist/ChecklistEditor.php      add and remove "- [ ] #n" lines; pure string work
       Checklist/TitleMatcher.php         does an overview issue's title name the milestone?
@@ -29,7 +30,35 @@ build/build.php                          zips src/ into build/plg_task_magazinec
 tools/                                   install-local.php, phpstan-bootstrap.php
 ```
 
-The namespace is `Yepr\Plugin\Task\MagazineChecklist`.
+The namespace is `Yepr\Plugin\Task\MagazineChecklist`. The plugin needs
+Joomla 6 and PHP 8.3.
+
+## Dependency injection
+
+Services are never built where they are used. `services/provider.php` is the
+only place that wires them together, in the child container Joomla gives each
+extension:
+
+| Service | Built from |
+|---|---|
+| `HttpTransport` | `JoomlaHttpTransport` on Joomla's HTTP client |
+| `CursorStore` | `DatabaseCursorStore` on the site's `DatabaseInterface` |
+| `ChecklistEditor`, `TitleMatcher` | themselves |
+| `ChecklistSyncFactory` | the four above |
+| `PluginInterface` | `MagazineChecklist`, with the factory, through `$container->lazy()` |
+
+All are shared and built on first use. The plugin is a lazy proxy, so a request
+that runs no task builds none of it. The proxy is a PHP 8.4 feature; on PHP 8.3
+`lazy()` simply calls the factory, as it does for core's plugins.
+
+The one thing that cannot be built once is the sync itself: which repository,
+which token and which labels belong to each task. So the plugin gets
+`ChecklistSyncFactory` injected and asks it for a `ChecklistSync` per run. That
+factory is the only place a gateway and a sync are made.
+
+Value objects (`Issue`, `IssueEvent`, `EventPage`, `Cursor`, `SyncSettings`,
+`HttpResult`) and exceptions are created where they arise; they are data, not
+dependencies.
 
 The sync takes GitHub as the `GithubGateway` interface and HTTP as the
 `HttpTransport` interface. That is what makes it testable without a network:

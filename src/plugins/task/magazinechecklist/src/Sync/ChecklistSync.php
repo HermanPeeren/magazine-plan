@@ -45,6 +45,8 @@ final class ChecklistSync
 	private \Closure $log;
 
 	/**
+	 * Made by ChecklistSyncFactory, once per task run.
+	 *
 	 * @param   callable(string, string): void  $log  Receives a message and a priority:
 	 *                                                info, warning or error.
 	 */
@@ -53,8 +55,8 @@ final class ChecklistSync
 		private readonly CursorStore $cursors,
 		private readonly SyncSettings $settings,
 		callable $log,
-		private readonly ChecklistEditor $editor = new ChecklistEditor(),
-		private readonly TitleMatcher $matcher = new TitleMatcher()
+		private readonly ChecklistEditor $editor,
+		private readonly TitleMatcher $matcher
 	) {
 		$this->log = $log(...);
 	}
