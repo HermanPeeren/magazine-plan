@@ -6,7 +6,7 @@ token, which aren't there yet.
 
 ## Done
 
-- Joomla 6 only (PHP 8.3+), with the plugin loaded lazily through
+- Joomla 6.1 or later (PHP 8.3+), with the plugin loaded lazily through
   `$container->lazy()` and all services injected; see "Dependency injection" in
   [development.md](development.md).
 - The task plugin `plg_task_magazinechecklist` with the routine
@@ -65,8 +65,8 @@ token, which aren't there yet.
 
 ## Open points
 
-- **The magazine site must run Joomla 6.** The plugin refuses to install on an
-  older version.
+- **The magazine site must run Joomla 6.1 or later.** The plugin refuses to install
+  on an older version: `$container->lazy()` is not in Joomla 6.0.
 - **The lazy proxy is untested locally.** WAMP has PHP 8.3, where `lazy()`
   builds the plugin straight away. PHP 8.4 makes it a real lazy proxy, the
   same way as for core's (also final) plugins. Run the task once on a PHP 8.4

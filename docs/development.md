@@ -8,7 +8,7 @@ site:
 ```
 src/
   magazinechecklist.xml                  the manifest; <files folder="plugins/task/magazinechecklist">
-  script.php                             install script (a service provider): Joomla 6 / PHP 8.3 checks, enables the plugin
+  script.php                             install script (a service provider): Joomla 6.1 / PHP 8.3 checks, enables the plugin
   plugins/task/magazinechecklist/
     services/provider.php                the composition root: registers the services, builds the plugin lazily
     forms/sync.xml                       the task's parameters
@@ -31,7 +31,7 @@ tools/                                   install-local.php, phpstan-bootstrap.ph
 ```
 
 The namespace is `Yepr\Plugin\Task\MagazineChecklist`. The plugin needs
-Joomla 6 and PHP 8.3.
+Joomla 6.1 (the first version with `$container->lazy()`) and PHP 8.3.
 
 ## Dependency injection
 
