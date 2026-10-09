@@ -65,12 +65,6 @@ token, which aren't there yet.
 
 ## Open points
 
-- **The magazine site must run Joomla 6.1 or later.** The plugin refuses to install
-  on an older version: `$container->lazy()` is not in Joomla 6.0.
-- **The lazy proxy is untested locally.** WAMP has PHP 8.3, where `lazy()`
-  builds the plugin straight away. PHP 8.4 makes it a real lazy proxy, the
-  same way as for core's (also final) plugins. Run the task once on a PHP 8.4
-  site.
 - **Log messages from the sync are English**, not language strings. They contain
   issue numbers and titles and are read by maintainers in the task log. Turn
   them into `PLG_TASK_MAGAZINECHECKLIST_LOG_*` strings if that's ever wanted.
@@ -87,5 +81,5 @@ token, which aren't there yet.
 ## Repository
 
 Public at https://github.com/HermanPeeren/magazine-plan, pushed on 2026-10-07.
-CI passes there. Released: v0.2.0 (2026-10-08). 0.2.1 requires Joomla 6.1; push a
-tag `v0.2.1` to publish it.
+CI passes there. Released: v0.2.0 (2026-10-08) and v0.2.1 (2026-10-09, requires
+Joomla 6.1).
