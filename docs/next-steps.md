@@ -1,6 +1,6 @@
 # Where this stands, and how to continue
 
-Status on 2026-10-08: **version 0.2.0, complete enough to try against a real
+Status on 2026-10-09: **version 0.2.1, complete enough to try against a real
 repository.** What's left needs the fork of the magazine repository and a
 token, which aren't there yet.
 
@@ -87,5 +87,5 @@ token, which aren't there yet.
 ## Repository
 
 Public at https://github.com/HermanPeeren/magazine-plan, pushed on 2026-10-07.
-CI passes there. No release has been tagged yet: push a tag `v0.2.0` to publish
-the first package.
+CI passes there. Released: v0.2.0 (2026-10-08). 0.2.1 requires Joomla 6.1; push a
+tag `v0.2.1` to publish it.

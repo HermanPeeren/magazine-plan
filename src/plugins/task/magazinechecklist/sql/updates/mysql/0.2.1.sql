@@ -1,0 +1,1 @@
+-- Joomla 6.1 minimum in the install script; no schema change.
